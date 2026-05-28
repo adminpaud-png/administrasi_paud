@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #2D3E99;
+  --color-primary-light: #4A5CB8;
+  --color-primary-dark: #1E2A6B;
+  
+  --color-secondary: #F4D84A;
+  --color-secondary-light: #F7E47D;
+  --color-secondary-dark: #D4B62D;
+
+  --color-background-soft: #F5F7FA;
+  --color-surface: #FFFFFF;
+
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-background-soft text-slate-800 font-sans antialiased;
+  }
+}
+
+@media print {
+  /* Hide the sidebar and header by default on print */
+  nav, header, aside, .sidebar {
+    display: none !important;
+  }
+  
+  /* Remove background colors that interfere with printing */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: none !important;
+    overflow: visible !important;
+  }
+
+  /* Reset flex/scroll on root elements to allow pages to slice */
+  #root, .flex-col, .flex-1, .w-0, .overflow-y-auto, .overflow-hidden, .overflow-x-auto {
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+    width: 100% !important;
+  }
+
+  /* Hide animated backgrounds */
+  img[src*="background"] {
+    display: none !important;
+  }
+}
