@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from "react";
-import { Plus, Search, MoreVertical, Edit2, Trash2, Download, Filter, Phone, UploadCloud } from "lucide-react";
+import { Plus, Search, MoreVertical, Edit2, Trash2, Download, Filter, Phone, UploadCloud, QrCode } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { motion } from "framer-motion";
 import { Dialog } from "../components/ui/dialog";
 import { ExcelImportModal } from "../components/ExcelImportModal";
+import { QRCodeModal } from "../components/QRCodeModal";
 import { useSettingsStore } from "../lib/store";
 
 export function Teachers() {
@@ -18,6 +19,7 @@ export function Teachers() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [qrModalData, setQrModalData] = useState<{isOpen: boolean, title: string, value: string, subtitle: string}>({isOpen: false, title: '', value: '', subtitle: ''});
 
   const teachers = useMemo(() => {
     return settings.teachers.map(t => 
@@ -115,7 +117,7 @@ export function Teachers() {
   };
 
   const handleExportCSV = () => {
-    const headers = ["NIP", "Nama", "Jenis Kelamin", "Jabatan", "No HP", "Status"];
+    const headers = ["NIK", "Nama", "Jenis Kelamin", "Jabatan", "No HP", "Status"];
     const csvContent = [
       headers.join(","),
       ...sortedTeachers.map(t => [t.nip, `"${t.name}"`, t.gender, t.position, t.phone, t.status].join(","))
@@ -185,7 +187,7 @@ export function Teachers() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <input 
               type="text" 
-              placeholder="Cari nama atau NIP..." 
+              placeholder="Cari nama atau NIK..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none text-sm transition-all shadow-sm"
@@ -227,6 +229,9 @@ export function Teachers() {
                 />
               </div>
               <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <button onClick={() => setQrModalData({isOpen: true, title: 'QR Data Guru', value: teacher.nip || '-', subtitle: teacher.name})} className="p-2 bg-white/90 backdrop-blur-sm text-slate-600 rounded-full shadow-sm hover:bg-slate-50 transition-colors" title="Lihat QR Code">
+                  <QrCode className="w-4 h-4" />
+                </button>
                 <button onClick={() => handleOpenEdit(teacher)} className="p-2 bg-white/90 backdrop-blur-sm text-blue-600 rounded-full shadow-sm hover:bg-blue-50 transition-colors">
                   <Edit2 className="w-4 h-4" />
                 </button>
@@ -281,7 +286,7 @@ export function Teachers() {
       <Dialog isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={modalMode === 'add' ? 'Tambah Guru' : 'Edit Guru'}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">NIP</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">NIK</label>
             <input required type="text" value={formData.nip || ''} onChange={e => setFormData({...formData, nip: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" />
           </div>
           <div>
@@ -397,6 +402,14 @@ export function Teachers() {
             photo: "",
           })));
         }}
+      />
+
+      <QRCodeModal 
+        isOpen={qrModalData.isOpen} 
+        onClose={() => setQrModalData(prev => ({...prev, isOpen: false}))} 
+        title={qrModalData.title}
+        value={qrModalData.value}
+        subtitle={qrModalData.subtitle}
       />
     </div>
   );

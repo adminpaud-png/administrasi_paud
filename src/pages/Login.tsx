@@ -27,7 +27,7 @@ export function Login() {
     // Automatically bypass if no supabase url is set in env
     if (!import.meta.env.VITE_SUPABASE_URL) {
       setTimeout(async () => {
-        const { error } = await signInMock(email, password);
+        const { error } = await signInMock(email.trim(), password.trim());
         if (error) {
           setError(error.message);
           setLoading(false);
@@ -139,7 +139,8 @@ export function Login() {
                  transition={{ delay: 0.8 }}
                  className="p-4 bg-blue-50 text-blue-800 border border-blue-200 rounded-xl text-sm mb-4"
                >
-                 Gunakan email: <strong>adminpaud@gmail.com</strong> dan sandi: <strong>654321</strong> untuk login ke demo aplikasi.
+                 Gunakan email: <strong>{settings.email || "adminpaud@gmail.com"}</strong> dan sandi yang baru Anda atur.
+                 <br/><span className="text-xs opacity-75">(Sandi bawaan adalah <strong>654321</strong>)</span>
                </motion.div>
             )}
 

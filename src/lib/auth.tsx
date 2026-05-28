@@ -2,6 +2,8 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 
+import { useSettingsStore } from "./store";
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
@@ -26,8 +28,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     if (isMock) {
       const mockSession = localStorage.getItem("mock_session");
-      if (mockSession === "true") {
-        setUser({ id: 'mock-id', email: 'adminpaud@gmail.com' } as User);
+      if (mockSession) {
+        // Handle migration from "true" to using the email string
+        const email = mockSession === "true" ? useSettingsStore.getState().email : mockSession;
+        setUser({ id: 'mock-id', email } as User);
       }
       setLoading(false);
       return;
@@ -48,12 +52,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [isMock]);
 
   const signInMock = async (email: string, pass: string) => {
-    if (email === "adminpaud@gmail.com" && pass === "654321") {
-      localStorage.setItem("mock_session", "true");
-      setUser({ id: 'mock-id', email: 'adminpaud@gmail.com' } as User);
+    const validEmail = (useSettingsStore.getState().email || "adminpaud@gmail.com").trim().toLowerCase();
+    const validPass = (useSettingsStore.getState().adminPassword || "654321").trim();
+    
+    if (email.trim().toLowerCase() === validEmail && pass.trim() === validPass) {
+      localStorage.setItem("mock_session", email.trim().toLowerCase());
+      setUser({ id: 'mock-id', email: email.trim().toLowerCase() } as User);
       return { error: null };
     }
-    return { error: new Error("Email atau kata sandi yang Anda masukkan salah") };
+    return { error: new Error(`Kesalahan login. Info Sistem - Email: "${validEmail}", Sandi: "${validPass}". Anda memasukkan - Email: "${email.trim().toLowerCase()}", Sandi: "${pass.trim()}"`) };
   };
 
   const signOut = async () => {

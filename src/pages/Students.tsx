@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from "react";
-import { Plus, Search, Edit2, Trash2, Download, Filter, GraduationCap, Users, UploadCloud } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Download, Filter, GraduationCap, Users, UploadCloud, QrCode } from "lucide-react";
 import { Card } from "../components/ui/card";
 import { motion } from "framer-motion";
 import { Dialog } from "../components/ui/dialog";
 import { ExcelImportModal } from "../components/ExcelImportModal";
+import { QRCodeModal } from "../components/QRCodeModal";
 import { useSettingsStore } from "../lib/store";
 
 export function Students() {
@@ -18,10 +19,11 @@ export function Students() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [qrModalData, setQrModalData] = useState<{isOpen: boolean, title: string, value: string, subtitle: string}>({isOpen: false, title: '', value: '', subtitle: ''});
 
   const sortedStudents = useMemo(() => {
     return [...settings.students]
-      .filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()) || s.nis.includes(searchTerm))
+      .filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()) || (s.nisn || s.nis || "").includes(searchTerm))
       .filter(s => classFilter ? s.class === classFilter : true)
       .sort((a, b) => {
         const classCompare = a.class.localeCompare(b.class);
@@ -42,10 +44,10 @@ export function Students() {
   };
 
   const handleExportCSV = () => {
-    const headers = ["NIS", "Nama", "Jenis Kelamin", "Kelas", "Nama Wali", "Tahun Ajaran", "Status"];
+    const headers = ["NISN", "Nama", "Jenis Kelamin", "Kelas", "Nama Wali", "Tahun Ajaran", "Status"];
     const csvContent = [
       headers.join(","),
-      ...sortedStudents.map(s => [s.nis, `"${s.name}"`, s.gender, s.class, `"${s.parent}"`, s.year, s.status].join(","))
+      ...sortedStudents.map(s => [s.nisn || s.nis, `"${s.name}"`, s.gender, s.class, `"${s.parent}"`, s.year, s.status].join(","))
     ].join("\n");
     
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -62,7 +64,7 @@ export function Students() {
 
   const handleOpenAdd = () => {
     setModalMode('add');
-    setFormData({ nis: "", name: "", gender: "Perempuan", class: "Kelas A", parent: "", year: "2023/2024", status: "Aktif", photo: "" });
+    setFormData({ nisn: "", name: "", gender: "Perempuan", class: "Kelas A", parent: "", year: "2023/2024", status: "Aktif", photo: "" });
     setIsModalOpen(true);
   };
 
@@ -168,7 +170,7 @@ export function Students() {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <input 
               type="text" 
-              placeholder="Cari nama atau NIS..." 
+              placeholder="Cari nama atau NISN..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-secondary focus:border-secondary outline-none text-sm transition-all shadow-sm"
@@ -212,6 +214,9 @@ export function Students() {
                 />
               </div>
               <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <button onClick={() => setQrModalData({isOpen: true, title: 'QR Data Murid', value: item.nisn || item.nis || '-', subtitle: item.name})} className="p-2 bg-white/90 backdrop-blur-sm text-slate-600 rounded-full shadow-sm hover:bg-slate-50 transition-colors" title="Lihat QR Code">
+                  <QrCode className="w-4 h-4" />
+                </button>
                 <button onClick={() => handleOpenEdit(item)} className="p-2 bg-white/90 backdrop-blur-sm text-blue-600 rounded-full shadow-sm hover:bg-blue-50 transition-colors">
                   <Edit2 className="w-4 h-4" />
                 </button>
@@ -231,7 +236,7 @@ export function Students() {
                   )}
                 </div>
                 <h3 className="font-bold text-lg text-slate-800 text-center leading-tight mb-1">{item.name}</h3>
-                <p className="text-sm font-mono text-slate-500 mb-4 tracking-wide">{item.nis}</p>
+                <p className="text-sm font-mono text-slate-500 mb-4 tracking-wide">{item.nisn || item.nis}</p>
                 
                 <div className="w-full space-y-3 mt-2">
                   <div className="flex items-center gap-3 text-sm text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
@@ -262,8 +267,8 @@ export function Students() {
       <Dialog isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={modalMode === 'add' ? 'Tambah Murid' : 'Edit Murid'}>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">NIS</label>
-            <input required type="text" value={formData.nis || ''} onChange={e => setFormData({...formData, nis: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-dark" />
+            <label className="block text-sm font-medium text-slate-700 mb-1">NISN</label>
+            <input required type="text" value={formData.nisn || formData.nis || ''} onChange={e => setFormData({...formData, nisn: e.target.value})} className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary-dark" />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">Nama Lengkap</label>
@@ -356,7 +361,7 @@ export function Students() {
         isOpen={isImportOpen}
         onClose={() => setIsImportOpen(false)}
         title="Import Data Murid"
-        expectedColumns={["nis", "name", "gender", "class", "parent", "year", "status"]}
+        expectedColumns={["nisn", "name", "gender", "class", "parent", "year", "status"]}
         notes={[
           "Kolom harus dinamai persis seperti di atas (huruf kecil).",
           "gender: 'Laki-laki' atau 'Perempuan'",
@@ -365,7 +370,7 @@ export function Students() {
         ]}
         onImport={(data) => {
           settings.bulkAddStudents(data.map(item => ({
-            nis: item.nis || "-",
+            nisn: item.nisn || item.nis || "-",
             name: item.name || "Tanpa Nama",
             gender: item.gender || "Perempuan",
             class: item.class || "Kelas A",
@@ -375,6 +380,14 @@ export function Students() {
             photo: "",
           })));
         }}
+      />
+
+      <QRCodeModal 
+        isOpen={qrModalData.isOpen} 
+        onClose={() => setQrModalData(prev => ({...prev, isOpen: false}))} 
+        title={qrModalData.title}
+        value={qrModalData.value}
+        subtitle={qrModalData.subtitle}
       />
     </div>
   );

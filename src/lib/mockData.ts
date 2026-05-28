@@ -11,9 +11,9 @@ export const initialEmployees = [
 ];
 
 export const initialStudents = [
-  { id: 1, nis: "24001", name: "Anisa Rahma", gender: "Perempuan", class: "Kelas A (Bintang)", parent: "Budi Santoso", year: "2023/2024", status: "Aktif", photo: "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&q=80&w=150&h=150" },
-  { id: 2, nis: "24002", name: "Kevin Pratama", gender: "Laki-laki", class: "Kelas B (Bulan)", parent: "Linda Wijaya", year: "2023/2024", status: "Aktif", photo: "https://images.unsplash.com/photo-1519340241574-2c61ce34604e?auto=format&fit=crop&q=80&w=150&h=150" },
-  { id: 3, nis: "24003", name: "Siti Nurhaliza", gender: "Perempuan", class: "Kelas A (Bintang)", parent: "Ahmad Dahlan", year: "2023/2024", status: "Aktif", photo: "https://images.unsplash.com/photo-1503454537195-1dc534baf3f4?auto=format&fit=crop&q=80&w=150&h=150" },
+  { id: 1, nisn: "24001", name: "Anisa Rahma", gender: "Perempuan", class: "Kelas A (Bintang)", parent: "Budi Santoso", year: "2023/2024", status: "Aktif", photo: "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&q=80&w=150&h=150" },
+  { id: 2, nisn: "24002", name: "Kevin Pratama", gender: "Laki-laki", class: "Kelas B (Bulan)", parent: "Linda Wijaya", year: "2023/2024", status: "Aktif", photo: "https://images.unsplash.com/photo-1519340241574-2c61ce34604e?auto=format&fit=crop&q=80&w=150&h=150" },
+  { id: 3, nisn: "24003", name: "Siti Nurhaliza", gender: "Perempuan", class: "Kelas A (Bintang)", parent: "Ahmad Dahlan", year: "2023/2024", status: "Aktif", photo: "https://images.unsplash.com/photo-1503454537195-1dc534baf3f4?auto=format&fit=crop&q=80&w=150&h=150" },
 ];
 
 export const initialParents = [

@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from "react";
-import { Plus, Search, Edit2, Trash2, Download, Filter, Phone, UploadCloud } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Download, Filter, Phone, UploadCloud, QrCode } from "lucide-react";
 import { Card } from "../components/ui/card";
 import { motion } from "framer-motion";
 import { Dialog } from "../components/ui/dialog";
 import { ExcelImportModal } from "../components/ExcelImportModal";
+import { QRCodeModal } from "../components/QRCodeModal";
 import { useSettingsStore } from "../lib/store";
 
 export function Employees() {
@@ -17,6 +18,7 @@ export function Employees() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [qrModalData, setQrModalData] = useState<{isOpen: boolean, title: string, value: string, subtitle: string}>({isOpen: false, title: '', value: '', subtitle: ''});
 
   const positionHierarchy: Record<string, number> = {
     "Kepala Tata Usaha": 1,
@@ -64,9 +66,26 @@ export function Employees() {
     document.body.removeChild(link);
   };
 
+  const generateNewEmpId = () => {
+    if (!settings.employees || settings.employees.length === 0) return "KAR-001";
+    
+    const maxNum = settings.employees.reduce((max, emp) => {
+      if (emp.emp_id) {
+        const match = emp.emp_id.match(/KAR-(\d+)/);
+        if (match && match[1]) {
+          const num = parseInt(match[1], 10);
+          return num > max ? num : max;
+        }
+      }
+      return max;
+    }, 0);
+    
+    return `KAR-${String(maxNum + 1).padStart(3, '0')}`;
+  };
+
   const handleOpenAdd = () => {
     setModalMode('add');
-    setFormData({ emp_id: "", name: "", position: "Staf Tata Usaha", phone: "", status: "Aktif", photo: "" });
+    setFormData({ emp_id: generateNewEmpId(), name: "", position: "Staf Tata Usaha", phone: "", status: "Aktif", photo: "" });
     setIsModalOpen(true);
   };
 
@@ -199,6 +218,9 @@ export function Employees() {
                 />
               </div>
               <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                <button onClick={() => setQrModalData({isOpen: true, title: 'QR Data Karyawan', value: item.emp_id || '-', subtitle: item.name})} className="p-2 bg-white/90 backdrop-blur-sm text-slate-600 rounded-full shadow-sm hover:bg-slate-50 transition-colors" title="Lihat QR Code">
+                  <QrCode className="w-4 h-4" />
+                </button>
                 <button onClick={() => handleOpenEdit(item)} className="p-2 bg-white/90 backdrop-blur-sm text-blue-600 rounded-full shadow-sm hover:bg-blue-50 transition-colors">
                   <Edit2 className="w-4 h-4" />
                 </button>
@@ -339,6 +361,14 @@ export function Employees() {
             photo: "",
           })));
         }}
+      />
+
+      <QRCodeModal 
+        isOpen={qrModalData.isOpen} 
+        onClose={() => setQrModalData(prev => ({...prev, isOpen: false}))} 
+        title={qrModalData.title}
+        value={qrModalData.value}
+        subtitle={qrModalData.subtitle}
       />
     </div>
   );

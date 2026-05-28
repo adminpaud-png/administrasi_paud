@@ -1,9 +1,10 @@
 import React, { useState, useMemo } from "react";
-import { Plus, Search, Edit2, Trash2, Download, Filter, MapPin, Box, UploadCloud } from "lucide-react";
+import { Plus, Search, Edit2, Trash2, Download, Filter, MapPin, Box, UploadCloud, QrCode } from "lucide-react";
 import { Card } from "../components/ui/card";
 import { motion } from "framer-motion";
 import { Dialog } from "../components/ui/dialog";
 import { ExcelImportModal } from "../components/ExcelImportModal";
+import { QRCodeModal } from "../components/QRCodeModal";
 import { useSettingsStore } from "../lib/store";
 
 export function Inventory() {
@@ -18,6 +19,7 @@ export function Inventory() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
+  const [qrModalData, setQrModalData] = useState<{isOpen: boolean, title: string, value: string, subtitle: string}>({isOpen: false, title: '', value: '', subtitle: ''});
 
   const sortedInventory = useMemo(() => {
     return [...settings.inventory]
@@ -60,9 +62,26 @@ export function Inventory() {
 
   const uniqueConditions = useMemo(() => Array.from(new Set(settings.inventory.map(item => item.condition))), [settings.inventory]);
 
+  const generateNewItemCode = () => {
+    if (!settings.inventory || settings.inventory.length === 0) return "INV-001";
+    
+    const maxNum = settings.inventory.reduce((max, item) => {
+      if (item.code) {
+        const match = item.code.match(/INV-(\d+)/);
+        if (match && match[1]) {
+          const num = parseInt(match[1], 10);
+          return num > max ? num : max;
+        }
+      }
+      return max;
+    }, 0);
+    
+    return `INV-${String(maxNum + 1).padStart(3, '0')}`;
+  };
+
   const handleOpenAdd = () => {
     setModalMode('add');
-    setFormData({ code: "", name: "", category: "Peralatan Kelas", location: "Gudang", qty: 1, condition: "Baik", photo: "" });
+    setFormData({ code: generateNewItemCode(), name: "", category: "Peralatan Kelas", location: "Gudang", qty: 1, condition: "Baik", photo: "" });
     setIsModalOpen(true);
   };
 
@@ -213,6 +232,9 @@ export function Inventory() {
                   />
                 </div>
                 <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                  <button onClick={() => setQrModalData({isOpen: true, title: 'QR Data Inventaris', value: item.code || '-', subtitle: item.name})} className="p-2 bg-white/90 backdrop-blur-sm text-slate-600 rounded-full shadow-sm hover:bg-slate-50 transition-colors" title="Lihat QR Code">
+                    <QrCode className="w-4 h-4" />
+                  </button>
                   <button onClick={() => handleOpenEdit(item)} className="p-2 bg-white/90 backdrop-blur-sm text-blue-600 rounded-full shadow-sm hover:bg-blue-50 transition-colors">
                     <Edit2 className="w-4 h-4" />
                   </button>
@@ -365,6 +387,14 @@ export function Inventory() {
             photo: "",
           })));
         }}
+      />
+
+      <QRCodeModal 
+        isOpen={qrModalData.isOpen} 
+        onClose={() => setQrModalData(prev => ({...prev, isOpen: false}))} 
+        title={qrModalData.title}
+        value={qrModalData.value}
+        subtitle={qrModalData.subtitle}
       />
     </div>
   );

@@ -9,6 +9,7 @@ interface SchoolSettings {
   address: string;
   phone: string;
   email: string;
+  adminPassword: string;
   city: string;
   setSettings: (settings: Partial<SchoolSettings>) => void;
   // Data lists
@@ -54,6 +55,7 @@ export const useSettingsStore = create<SchoolSettings>()(
       address: "Jl. Teratai Putih II Ujung RT.08/RW.04, Kel. Malaka Sari, Kec. Duren Sawit, Kota Adm. Jakarta Timur, Prov. D.K.I. Jakarta 13460",
       phone: "(021) 555-0123",
       email: "adminpaud@gmail.com",
+      adminPassword: "654321",
       city: "Jakarta Timur",
       setSettings: (newSettings) => set((state) => {
         const newState: any = { ...state, ...newSettings };

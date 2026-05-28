@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { useSettingsStore } from "../lib/store";
-import { Save, Building, UserCircle } from "lucide-react";
+import { Save, Building, UserCircle, ShieldAlert } from "lucide-react";
 import { Card } from "../components/ui/card";
 import { motion } from "framer-motion";
+import { supabase } from "../lib/supabase";
 
 export function Settings() {
   const settings = useSettingsStore();
@@ -13,25 +14,59 @@ export function Settings() {
     address: settings.address,
     phone: settings.phone,
     email: settings.email,
+    adminPassword: settings.adminPassword || "654321",
     city: settings.city,
   });
   const [isSaving, setIsSaving] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
+    setSuccessMsg("");
+    setErrorMsg("");
     
-    // Simulate save delay
-    setTimeout(() => {
-      settings.setSettings(formData);
-      setIsSaving(false);
-      alert("Pengaturan berhasil disimpan!");
-    }, 500);
+    // Jika menggunakan data online (Supabase)
+    if (import.meta.env.VITE_SUPABASE_URL) {
+      try {
+        const updates: { email?: string; password?: string } = {};
+        
+        if (formData.email !== settings.email) {
+          updates.email = formData.email;
+        }
+        
+        // Simpan password ke server online jika user merubahnya dari lokal
+        if (formData.adminPassword && formData.adminPassword !== settings.adminPassword) {
+          updates.password = formData.adminPassword;
+        }
+        
+        if (Object.keys(updates).length > 0) {
+          const { error } = await supabase.auth.updateUser(updates);
+          if (error) {
+            setErrorMsg("Gagal sinkronisasi data kredensial ke server online: " + error.message);
+            setIsSaving(false);
+            return;
+          }
+        }
+      } catch (err: any) {
+        console.error(err);
+        setErrorMsg("Terjadi kesalahan jaringan: " + err.message);
+        setIsSaving(false);
+        return;
+      }
+    }
+    
+    // Simpan local
+    settings.setSettings(formData);
+    setIsSaving(false);
+    setSuccessMsg("Pengaturan dan data berhasil disimpan!");
+    setTimeout(() => setSuccessMsg(""), 3000);
   };
 
   return (
@@ -40,6 +75,18 @@ export function Settings() {
         <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Pengaturan Sistem</h1>
         <p className="text-slate-500 mt-1">Kelola data profil sekolah dan identitas kepala sekolah.</p>
       </div>
+
+      {successMsg && (
+        <div className="p-4 bg-green-50 text-green-700 border border-green-200 rounded-xl mb-4 text-sm font-medium">
+          {successMsg}
+        </div>
+      )}
+      
+      {errorMsg && (
+        <div className="p-4 bg-red-50 text-red-700 border border-red-200 rounded-xl mb-4 text-sm font-medium">
+          {errorMsg}
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card className="p-6">
@@ -60,7 +107,7 @@ export function Settings() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">NIP</label>
+              <label className="text-sm font-semibold text-slate-700">NIK</label>
               <input
                 type="text"
                 name="principalNip"
@@ -111,7 +158,7 @@ export function Settings() {
                 required
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 md:col-span-2">
               <label className="text-sm font-semibold text-slate-700">Nomor Telepon</label>
               <input
                 type="text"
@@ -121,17 +168,46 @@ export function Settings() {
                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all text-sm outline-none"
               />
             </div>
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="w-5 h-5 text-primary" />
+              <h2 className="text-lg font-bold text-slate-800">Akun Login Admin</h2>
+            </div>
+            <span className="text-xs bg-amber-100 text-amber-800 px-3 py-1 rounded-full font-medium">Kredensial Login</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-700">Email Sekolah</label>
+              <label className="text-sm font-semibold text-slate-700">Email Login</label>
               <input
                 type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
                 className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all text-sm outline-none"
+                placeholder="adminpaud@gmail.com"
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-700">Password / Kata Sandi baru</label>
+              <input
+                type="text"
+                name="adminPassword"
+                value={formData.adminPassword}
+                onChange={handleChange}
+                className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary transition-all text-sm outline-none"
+                placeholder="Minimal 6 karakter"
+                required
               />
             </div>
           </div>
+          <p className="mt-4 text-sm text-slate-500">
+            Perubahan kredensial ini akan berlaku pada proses login berikutnya. Harap catat email dan password yang baru.
+          </p>
         </Card>
 
         <div className="flex justify-end">

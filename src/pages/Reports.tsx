@@ -104,7 +104,7 @@ export function Reports() {
     switch (activeReport) {
       case "guru": return dynamicTeachers.filter(t => t.name.toLowerCase().includes(q) || t.nip.includes(q));
       case "karyawan": return settings.employees.filter(e => e.name.toLowerCase().includes(q) || e.emp_id.includes(q));
-      case "murid": return settings.students.filter(s => (s.name.toLowerCase().includes(q) || (s.nis && s.nis.includes(q))) && (filter ? s.class.toLowerCase().includes(filter) : true));
+      case "murid": return settings.students.filter(s => (s.name.toLowerCase().includes(q) || (s.nisn && s.nisn.includes(q)) || (s.nis && s.nis.includes(q))) && (filter ? s.class.toLowerCase().includes(filter) : true));
       case "wali": return settings.parents.filter(p => p.name.toLowerCase().includes(q) || (p.student && p.student.toLowerCase().includes(q)));
       case "inventaris": return settings.inventory.filter(i => (i.name.toLowerCase().includes(q) || (i.category && i.category.toLowerCase().includes(q))) && (filter ? i.category.toLowerCase().includes(filter) : true));
       default: return [];
@@ -115,9 +115,9 @@ export function Reports() {
 
   const renderTableHeaders = () => {
     switch (activeReport) {
-      case "guru": return ["No", "NIP", "Nama Guru", "Jabatan", "Nomor HP", "Alamat"];
+      case "guru": return ["No", "NIK", "Nama Guru", "Jabatan", "Nomor HP", "Alamat"];
       case "karyawan": return ["No", "ID", "Nama Karyawan", "Jabatan", "Nomor HP"];
-      case "murid": return ["No", "NIS", "Nama Murid", "Jenis Kelamin", "Kelas", "Tahun Ajaran"];
+      case "murid": return ["No", "NISN", "Nama Murid", "Jenis Kelamin", "Kelas", "Tahun Ajaran"];
       case "wali": return ["No", "Nama Wali", "Nama Murid", "Nomor HP", "Pekerjaan"];
       case "inventaris": return ["No", "Kode Barang", "Nama Barang", "Kategori", "Jumlah", "Kondisi"];
       default: return [];
@@ -150,7 +150,7 @@ export function Reports() {
         case "murid": return (
           <tr key={item.id} className="hover:bg-slate-50 text-sm">
             <td className={`${tdClass} text-center`}>{index + 1}</td>
-            <td className={tdClass}>{item.nis}</td>
+            <td className={tdClass}>{item.nisn || item.nis}</td>
             <td className={`${tdClass} font-semibold text-slate-800`}>{item.name}</td>
             <td className={tdClass}>{item.gender}</td>
             <td className={tdClass}>{item.class}</td>
@@ -336,7 +336,7 @@ export function Reports() {
                   <p className="text-slate-800 mb-20 text-sm">{settings.city}, {currentDate}</p>
                   <p className="font-bold text-slate-800 underline underline-offset-2">{settings.principalName}</p>
                   <p className="text-slate-600 text-sm mt-1">Kepala Sekolah</p>
-                  {settings.principalNip && <p className="text-slate-600 text-sm">NIP. {settings.principalNip}</p>}
+                  {settings.principalNip && <p className="text-slate-600 text-sm">NIK. {settings.principalNip}</p>}
                 </div>
               </div>
               
